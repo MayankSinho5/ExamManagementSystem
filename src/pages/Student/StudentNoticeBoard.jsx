@@ -33,7 +33,7 @@ const StudentNoticeBoard = () => {
                     </div>
                 ) : (
                     notices.map(notice => (
-                        <div key={notice.id} className="card" style={{
+                        <div key={notice._id} className="card" style={{
                             borderLeft: '5px solid var(--primary-color)',
                             transition: 'transform 0.2s',
                             cursor: 'default'
@@ -52,7 +52,7 @@ const StudentNoticeBoard = () => {
                                     border: '1px solid var(--border-color)'
                                 }}>
                                     <Calendar size={14} />
-                                    {new Date(notice.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    {new Date(notice.createdAt || notice.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </div>
                             </div>
                             <p style={{ color: 'var(--text-primary)', lineHeight: '1.6', whiteSpace: 'pre-wrap', fontSize: '1rem' }}>

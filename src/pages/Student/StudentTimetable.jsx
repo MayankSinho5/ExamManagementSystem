@@ -1,17 +1,18 @@
 import React from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, BookOpen } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, BookOpen, MapPin } from 'lucide-react';
 
 const StudentTimetable = () => {
     const { timetable } = useAdmin();
     const navigate = useNavigate();
 
-    // Sort timetable by date and time
+    // Sort timetable by date and startTime
     const sortedTimetable = [...timetable].sort((a, b) => {
-        const dateA = new Date(`${a.date}T${a.time}`);
-        const dateB = new Date(`${b.date}T${b.time}`);
-        return dateA - dateB;
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        if (dateA - dateB !== 0) return dateA - dateB;
+        return a.startTime.localeCompare(b.startTime);
     });
 
     return (
@@ -31,9 +32,9 @@ const StudentTimetable = () => {
                 ) : (
                     <div style={{ display: 'grid', gap: '1rem' }}>
                         {sortedTimetable.map(item => (
-                            <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.5rem', background: 'var(--background-color)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', borderLeft: '4px solid var(--primary-color)' }}>
+                            <div key={item._id || item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.5rem', background: 'var(--background-color)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', borderLeft: '4px solid var(--primary-color)' }}>
                                 <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
-                                    <div style={{ flex: 1, minWidth: '200px' }}>
+                                    <div style={{ flex: 1.5, minWidth: '200px' }}>
                                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Subject</div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '600', fontSize: '1.1rem' }}>
                                             <BookOpen size={20} color="var(--primary-color)" />
@@ -50,10 +51,16 @@ const StudentTimetable = () => {
                                     </div>
 
                                     <div style={{ flex: 1, minWidth: '150px' }}>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Time</div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}>
-                                            <Clock size={18} color="var(--secondary-color)" />
-                                            {item.time}
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Time & Venue</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}>
+                                                <Clock size={16} color="var(--secondary-color)" />
+                                                {item.startTime} - {item.endTime}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                                <MapPin size={14} />
+                                                {item.venue}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

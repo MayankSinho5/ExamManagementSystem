@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import API from '../api/axios';
 
 const AdminContext = createContext();
 
@@ -8,47 +9,101 @@ export const AdminProvider = ({ children }) => {
     const [timetable, setTimetable] = useState([]);
     const [notices, setNotices] = useState([]);
     const [seatingPlan, setSeatingPlan] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchNotices = async () => {
+        try {
+            const res = await API.get('/notices');
+            setNotices(res.data);
+        } catch (err) {
+            console.error('Error fetching notices:', err);
+        }
+    };
+
+    const fetchTimetable = async () => {
+        try {
+            const res = await API.get('/timetable');
+            setTimetable(res.data);
+        } catch (err) {
+            console.error('Error fetching timetable:', err);
+        }
+    };
+
+    const fetchSeatingPlan = async () => {
+        try {
+            const res = await API.get('/seating');
+            if (res.data) setSeatingPlan(res.data.plan);
+        } catch (err) {
+            console.error('Error fetching seating plan:', err);
+        }
+    };
+
+    const loadAllData = async () => {
+        setLoading(true);
+        try {
+            await Promise.all([
+                fetchNotices(),
+                fetchTimetable(),
+                fetchSeatingPlan()
+            ]);
+        } catch (err) {
+            console.error('Error loading admin data:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const storedTimetable = localStorage.getItem('timetable');
-        if (storedTimetable) setTimetable(JSON.parse(storedTimetable));
-
-        const storedNotices = localStorage.getItem('notices');
-        if (storedNotices) setNotices(JSON.parse(storedNotices));
-
-        const storedSeating = localStorage.getItem('seating_plan');
-        if (storedSeating) setSeatingPlan(JSON.parse(storedSeating));
+        loadAllData();
     }, []);
 
-    const addTimetableItem = (item) => {
-        const newItem = { ...item, id: Date.now() };
-        const updated = [...timetable, newItem];
-        setTimetable(updated);
-        localStorage.setItem('timetable', JSON.stringify(updated));
+    const addTimetableItem = async (item) => {
+        try {
+            const res = await API.post('/timetable', item);
+            setTimetable(prev => [...prev, res.data]);
+            return res.data;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || 'Error adding timetable item');
+        }
     };
 
-    const deleteTimetableItem = (id) => {
-        const updated = timetable.filter(t => t.id !== id);
-        setTimetable(updated);
-        localStorage.setItem('timetable', JSON.stringify(updated));
+    const deleteTimetableItem = async (id) => {
+        try {
+            await API.delete(`/timetable/${id}`);
+            setTimetable(prev => prev.filter(t => (t._id || t.id) !== id));
+        } catch (err) {
+            console.error('Error deleting timetable item:', err);
+        }
     };
 
-    const addNotice = (notice) => {
-        const newNotice = { ...notice, id: Date.now(), date: new Date().toISOString() };
-        const updated = [newNotice, ...notices];
-        setNotices(updated);
-        localStorage.setItem('notices', JSON.stringify(updated));
+    const addNotice = async (noticeData) => {
+        try {
+            const res = await API.post('/notices', noticeData);
+            setNotices(prev => [res.data, ...prev]);
+            return res.data;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || 'Error adding notice');
+        }
     };
 
-    const deleteNotice = (id) => {
-        const updated = notices.filter(n => n.id !== id);
-        setNotices(updated);
-        localStorage.setItem('notices', JSON.stringify(updated));
+    const deleteNotice = async (id) => {
+        try {
+            await API.delete(`/notices/${id}`);
+            setNotices(prev => prev.filter(n => (n._id || n.id) !== id));
+        } catch (err) {
+            console.error('Error deleting notice:', err);
+        }
     };
 
-    const updateSeatingPlan = (plan) => {
-        setSeatingPlan(plan);
-        localStorage.setItem('seating_plan', JSON.stringify(plan));
+    const updateSeatingPlan = async (plan) => {
+        try {
+            const res = await API.post('/seating/update', { plan });
+            setSeatingPlan(res.data.plan);
+            return res.data.plan;
+        } catch (err) {
+            console.error('Error updating seating plan:', err);
+            throw err;
+        }
     };
 
     return (
@@ -60,7 +115,9 @@ export const AdminProvider = ({ children }) => {
             deleteTimetableItem,
             addNotice,
             deleteNotice,
-            updateSeatingPlan
+            updateSeatingPlan,
+            loading,
+            refreshData: loadAllData
         }}>
             {children}
         </AdminContext.Provider>

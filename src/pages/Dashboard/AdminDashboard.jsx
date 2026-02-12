@@ -148,7 +148,7 @@ const AdminDashboard = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
                                 {filteredExams.map((exam, index) => (
                                     <motion.div
-                                        key={exam.id}
+                                        key={exam._id}
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ delay: index * 0.1 }}
@@ -160,7 +160,7 @@ const AdminDashboard = () => {
                                             <h4 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-primary)' }}>{exam.title}</h4>
                                             <button
                                                 onClick={() => {
-                                                    if (window.confirm('Delete this exam?')) deleteExam(exam.id);
+                                                    if (window.confirm('Delete this exam?')) deleteExam(exam._id);
                                                 }}
                                                 style={{ background: 'var(--border-color)', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px' }}
                                                 title="Delete Exam"

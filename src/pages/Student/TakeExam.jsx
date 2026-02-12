@@ -18,7 +18,7 @@ const TakeExam = () => {
     const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
-        const foundExam = exams.find(e => e.id === examId);
+        const foundExam = exams.find(e => (e._id || e.id) === examId);
         if (!foundExam) {
             alert('Exam not found');
             navigate('/student-dashboard');
@@ -48,12 +48,13 @@ const TakeExam = () => {
         // Calculate Score
         let score = 0;
         exam.questions.forEach(q => {
-            if (answers[q.id] === q.correctAnswer) {
+            const qId = q._id || q.id;
+            if (answers[qId] === q.correctAnswer) {
                 score++;
             }
         });
 
-        submitAttempt(exam.id, user.id, score, answers);
+        submitAttempt(exam._id || exam.id, score, answers);
         alert(`Exam Submitted! Your Score: ${score}/${exam.questions.length}`);
         navigate('/student-dashboard');
     };
@@ -98,31 +99,35 @@ const TakeExam = () => {
                     <h2 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>{exam.questions[currentQuestion].text}</h2>
 
                     <div style={{ flex: 1 }}>
-                        {exam.questions[currentQuestion].options.map((opt, index) => (
-                            <motion.div
-                                key={opt.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                onClick={() => handleSelectOption(exam.questions[currentQuestion].id, opt.id)}
-                                whileHover={{ scale: 1.01 }}
-                                whileTap={{ scale: 0.99 }}
-                                style={{
-                                    padding: '1rem',
-                                    border: answers[exam.questions[currentQuestion].id] === opt.id ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
-                                    borderRadius: 'var(--radius-md)',
-                                    marginBottom: '1rem',
-                                    cursor: 'pointer',
-                                    background: answers[exam.questions[currentQuestion].id] === opt.id ? 'rgba(99, 102, 241, 0.1)' : 'var(--surface-color)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '1rem'
-                                }}
-                            >
-                                <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: answers[exam.questions[currentQuestion].id] === opt.id ? '6px solid var(--primary-color)' : '2px solid var(--border-color)', flexShrink: 0 }}></div>
-                                {opt.text}
-                            </motion.div>
-                        ))}
+                        {exam.questions[currentQuestion].options.map((opt, index) => {
+                            const qId = exam.questions[currentQuestion]._id || exam.questions[currentQuestion].id;
+                            const optId = opt._id || opt.id;
+                            return (
+                                <motion.div
+                                    key={optId}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    onClick={() => handleSelectOption(qId, optId)}
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.99 }}
+                                    style={{
+                                        padding: '1rem',
+                                        border: answers[qId] === optId ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
+                                        borderRadius: 'var(--radius-md)',
+                                        marginBottom: '1rem',
+                                        cursor: 'pointer',
+                                        background: answers[qId] === optId ? 'rgba(99, 102, 241, 0.1)' : 'var(--surface-color)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '1rem'
+                                    }}
+                                >
+                                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: answers[qId] === optId ? '6px solid var(--primary-color)' : '2px solid var(--border-color)', flexShrink: 0 }}></div>
+                                    {opt.text}
+                                </motion.div>
+                            );
+                        })}
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>

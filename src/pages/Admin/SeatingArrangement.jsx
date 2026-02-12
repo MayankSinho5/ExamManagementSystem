@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
@@ -9,15 +9,39 @@ const SeatingArrangement = () => {
     const { seatingPlan, updateSeatingPlan } = useAdmin();
     const navigate = useNavigate();
 
-    // Configuration State
-    const [totalBenches, setTotalBenches] = useState(seatingPlan?.totalBenches || 10);
-    const [studentsPerBench, setStudentsPerBench] = useState(seatingPlan?.studentsPerBench || 2);
-    const [roomNumber, setRoomNumber] = useState(seatingPlan?.roomNumber || '');
-    const [isGenerated, setIsGenerated] = useState(!!seatingPlan);
-    const [arrangement, setArrangement] = useState(seatingPlan?.arrangement || []);
+    // Students fetched from backend
+    const [allStudents, setAllStudents] = useState([]);
+    const [totalBenches, setTotalBenches] = useState(10);
+    const [studentsPerBench, setStudentsPerBench] = useState(2);
+    const [roomNumber, setRoomNumber] = useState('');
+    const [isGenerated, setIsGenerated] = useState(false);
+    const [arrangement, setArrangement] = useState([]);
     const [error, setError] = useState('');
+    const [fetchingStudents, setFetchingStudents] = useState(true);
 
-    const saveArrangement = () => {
+    // Sync from context when it loads
+    useEffect(() => {
+        if (seatingPlan) {
+            setTotalBenches(seatingPlan.totalBenches || 10);
+            setStudentsPerBench(seatingPlan.studentsPerBench || 2);
+            setRoomNumber(seatingPlan.roomNumber || '');
+            setArrangement(seatingPlan.arrangement || []);
+            setIsGenerated(true);
+        }
+    }, [seatingPlan]);
+
+    // Fetch students on mount
+    useEffect(() => {
+        const fetchStudents = async () => {
+            setFetchingStudents(true);
+            const data = await getAllStudents();
+            setAllStudents(data);
+            setFetchingStudents(false);
+        };
+        fetchStudents();
+    }, []);
+
+    const saveArrangement = async () => {
         if (!roomNumber) {
             alert('Please enter a Room Number');
             return;
@@ -27,31 +51,30 @@ const SeatingArrangement = () => {
             totalBenches,
             studentsPerBench,
             arrangement,
-            updatedAt: new Date().toISOString()
         };
-        updateSeatingPlan(data);
-        alert('Seating Arrangement Saved Successfully!');
+        try {
+            await updateSeatingPlan(data);
+            alert('Seating Arrangement Saved to Backend Successfully!');
+        } catch (err) {
+            alert('Error saving arrangement');
+        }
     };
-
-    const students = getAllStudents();
 
     const generateSeating = () => {
         setError('');
         const capacity = totalBenches * studentsPerBench;
 
-        if (students.length === 0) {
+        if (allStudents.length === 0) {
             setError('No students registered to assign.');
             return;
         }
 
-        if (students.length > capacity) {
-            setError(`Not enough capacity! Needed: ${students.length}, Available: ${capacity}. Please add more benches.`);
+        if (allStudents.length > capacity) {
+            setError(`Not enough capacity! Needed: ${allStudents.length}, Available: ${capacity}. Please add more benches.`);
             return;
         }
 
-        // Shuffle students for random assignment (optional, keeping sequential for now for clarity)
-        // const shuffled = [...students].sort(() => 0.5 - Math.random());
-        const shuffled = [...students]; // Sequential
+        const shuffled = [...allStudents]; // Sequential for now
 
         const newArrangement = [];
         let studentIndex = 0;
@@ -125,8 +148,8 @@ const SeatingArrangement = () => {
                                 style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
                             />
                         </div>
-                        <button onClick={generateSeating} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                            <RefreshCw size={18} /> Generate
+                        <button onClick={generateSeating} disabled={fetchingStudents} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                            <RefreshCw size={18} /> {fetchingStudents ? 'Loading...' : 'Generate'}
                         </button>
                     </div>
 
@@ -136,9 +159,9 @@ const SeatingArrangement = () => {
                         </div>
                     )}
 
-                    {!error && (
+                    {!error && !fetchingStudents && (
                         <div style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                            Total Students: <strong>{students.length}</strong> • Total Capacity: <strong>{totalBenches * studentsPerBench}</strong>
+                            Total Students: <strong>{allStudents.length}</strong> • Total Capacity: <strong>{totalBenches * studentsPerBench}</strong>
                         </div>
                     )}
                 </div>
@@ -149,7 +172,7 @@ const SeatingArrangement = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h3 style={{ margin: 0 }}>Arrangement Preview</h3>
                             <button onClick={saveArrangement} className="btn " style={{ background: '#16a34a', color: 'white', border: 'none', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                Save Arrangement
+                                Save Arrangement to Backend
                             </button>
                         </div>
 
@@ -166,7 +189,7 @@ const SeatingArrangement = () => {
                                                 {bench.students.map((student, idx) => (
                                                     <li key={idx} style={{ marginBottom: '0.25rem' }}>
                                                         <strong>{student.name}</strong>
-                                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{student.email}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{student.rollNumber || student.email}</div>
                                                     </li>
                                                 ))}
                                             </ul>

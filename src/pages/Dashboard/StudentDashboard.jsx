@@ -31,7 +31,7 @@ const StudentDashboard = () => {
 
     useEffect(() => {
         if (user) {
-            setAttempts(getAttempts(user.id));
+            getAttempts(user._id).then(data => setAttempts(data));
         }
     }, [user, getAttempts]);
 
@@ -41,13 +41,17 @@ const StudentDashboard = () => {
     };
 
     const getExamStatus = (examId) => {
-        const attempt = attempts.find(a => a.examId === examId);
+        // In MongoDB attempt.examId might be an object due to populate, or just ID
+        const attempt = attempts.find(a => {
+            const id = typeof a.examId === 'object' ? a.examId._id : a.examId;
+            return id === examId;
+        });
         return attempt ? attempt : null;
     };
 
     const filteredExams = exams.filter(exam => {
         const matchesSearch = exam.title.toLowerCase().includes(searchTerm.toLowerCase());
-        const attempt = getExamStatus(exam.id);
+        const attempt = getExamStatus(exam._id);
         const matchesStatus =
             filterStatus === 'all' ||
             (filterStatus === 'completed' && attempt) ||
@@ -184,10 +188,10 @@ const StudentDashboard = () => {
                                 ) : (
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
                                         {filteredExams.map((exam, index) => {
-                                            const attempt = getExamStatus(exam.id);
+                                            const attempt = getExamStatus(exam._id);
                                             return (
                                                 <motion.div
-                                                    key={exam.id}
+                                                    key={exam._id}
                                                     initial={{ opacity: 0, y: 20 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: index * 0.1 }}
@@ -236,15 +240,13 @@ const StudentDashboard = () => {
                                                                 </button>
                                                             </div>
                                                         ) : (
-                                                            <motion.button
-                                                                whileHover={{ scale: 1.05 }}
-                                                                whileTap={{ scale: 0.95 }}
-                                                                onClick={() => navigate(`/take-exam/${exam.id}`)}
+                                                            <button
+                                                                onClick={() => navigate(`/take-exam/${exam._id}`)}
                                                                 className="btn btn-primary"
                                                                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.6rem' }}
                                                             >
                                                                 <Play size={16} /> Start Now
-                                                            </motion.button>
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </motion.div>
@@ -274,12 +276,12 @@ const StudentDashboard = () => {
                                             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem 0' }}>No announcements.</p>
                                         ) : (
                                             notices.slice(0, 3).map(notice => (
-                                                <div key={notice.id} style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
+                                                <div key={notice._id} style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
                                                     <h4 style={{ fontSize: '0.9rem', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{notice.title}</h4>
                                                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '0.4rem' }}>
                                                         {notice.content}
                                                     </p>
-                                                    <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>{new Date(notice.date).toLocaleDateString()}</span>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{new Date(notice.createdAt || notice.date).toLocaleDateString()}</span>
                                                 </div>
                                             ))
                                         )}

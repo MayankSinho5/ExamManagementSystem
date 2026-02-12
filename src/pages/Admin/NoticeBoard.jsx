@@ -60,16 +60,16 @@ const NoticeBoard = () => {
                         <p style={{ color: 'var(--text-secondary)' }}>No announcements posted.</p>
                     </div>
                 ) : notices.map(notice => (
-                    <div key={notice.id} className="card" style={{ borderLeft: '4px solid var(--secondary-color)' }}>
+                    <div key={notice._id} className="card" style={{ borderLeft: '4px solid var(--secondary-color)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
                             <h3 style={{ fontSize: '1.1rem', margin: 0 }}>{notice.title}</h3>
-                            <button onClick={() => deleteNotice(notice.id)} style={{ background: 'transparent', border: 'none', color: 'var(--error-color)', cursor: 'pointer' }}>
+                            <button onClick={() => deleteNotice(notice._id)} style={{ background: 'transparent', border: 'none', color: 'var(--error-color)', cursor: 'pointer' }}>
                                 <Trash size={18} />
                             </button>
                         </div>
                         <p style={{ color: 'var(--text-primary)', marginBottom: '1rem', whiteSpace: 'pre-wrap' }}>{notice.content}</p>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Megaphone size={14} /> Posted on {new Date(notice.date).toLocaleDateString()}
+                            <Megaphone size={14} /> Posted on {new Date(notice.createdAt || notice.date).toLocaleDateString()}
                         </div>
                     </div>
                 ))}

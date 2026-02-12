@@ -15,11 +15,11 @@ const StudentSeating = () => {
 
     if (seatingPlan && seatingPlan.arrangement) {
         myBench = seatingPlan.arrangement.find(bench =>
-            bench.students.some(s => s.id === user.id)
+            bench.students.some(s => (s._id || s.id) === (user._id || user.id))
         );
 
         if (myBench) {
-            partners = myBench.students.filter(s => s.id !== user.id);
+            partners = myBench.students.filter(s => (s._id || s.id) !== (user._id || user.id));
         }
     }
 

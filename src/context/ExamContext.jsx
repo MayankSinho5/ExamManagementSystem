@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import API from '../api/axios';
 
 const ExamContext = createContext();
 
@@ -6,52 +7,63 @@ export const useExam = () => useContext(ExamContext);
 
 export const ExamProvider = ({ children }) => {
     const [exams, setExams] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchExams = async () => {
+        try {
+            const res = await API.get('/exams');
+            setExams(res.data);
+        } catch (err) {
+            console.error('Error fetching exams:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        // Load exams from local storage
-        const storedExams = localStorage.getItem('exams');
-        if (storedExams) {
-            setExams(JSON.parse(storedExams));
-        }
+        fetchExams();
     }, []);
 
-    const addExam = (exam) => {
-        const newExam = { ...exam, id: Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() };
-        const updatedExams = [...exams, newExam];
-        setExams(updatedExams);
-        localStorage.setItem('exams', JSON.stringify(updatedExams));
-        return newExam;
+    const addExam = async (examData) => {
+        try {
+            const res = await API.post('/exams', examData);
+            setExams([res.data, ...exams]);
+            return res.data;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || 'Error adding exam');
+        }
     };
 
-    const deleteExam = (id) => {
-        const updatedExams = exams.filter(exam => exam.id !== id);
-        setExams(updatedExams);
-        localStorage.setItem('exams', JSON.stringify(updatedExams));
+    const deleteExam = async (id) => {
+        try {
+            await API.delete(`/exams/${id}`);
+            setExams(exams.filter(exam => exam._id !== id));
+        } catch (err) {
+            console.error('Error deleting exam:', err);
+        }
     };
 
-    const submitAttempt = (examId, studentId, score, answers) => {
-        const attempts = JSON.parse(localStorage.getItem('attempts') || '[]');
-        const newAttempt = {
-            id: Date.now(),
-            examId,
-            studentId,
-            score,
-            answers,
-            submittedAt: new Date().toISOString()
-        };
-        const updatedAttempts = [...attempts, newAttempt];
-        localStorage.setItem('attempts', JSON.stringify(updatedAttempts));
-        return newAttempt;
+    const submitAttempt = async (examId, score, answers) => {
+        try {
+            const res = await API.post('/attempts/submit', { examId, score, answers });
+            return res.data;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || 'Error submitting attempt');
+        }
     };
 
-    const getAttempts = (studentId) => {
-        const attempts = JSON.parse(localStorage.getItem('attempts') || '[]');
-        if (studentId) return attempts.filter(a => a.studentId === studentId);
-        return attempts;
+    const getAttempts = async (studentId) => {
+        try {
+            const res = await API.get('/attempts/my-attempts', { params: { studentId } });
+            return res.data;
+        } catch (err) {
+            console.error('Error getting attempts:', err);
+            return [];
+        }
     };
 
     return (
-        <ExamContext.Provider value={{ exams, addExam, deleteExam, submitAttempt, getAttempts }}>
+        <ExamContext.Provider value={{ exams, addExam, deleteExam, submitAttempt, getAttempts, loading, refreshExams: fetchExams }}>
             {children}
         </ExamContext.Provider>
     );
