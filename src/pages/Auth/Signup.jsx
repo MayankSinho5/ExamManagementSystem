@@ -10,6 +10,7 @@ const Signup = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        rollNumber: '',
         password: '',
         confirmPassword: ''
     });
@@ -33,7 +34,7 @@ const Signup = () => {
         setLoading(true);
 
         try {
-            await signup(formData.name, formData.email, formData.password, role);
+            await signup(formData.name, formData.email, formData.password, role, formData.rollNumber);
             navigate(role === 'admin' ? '/admin-dashboard' : '/student-dashboard');
         } catch (err) {
             setError('Failed to create account. Please try again.');
@@ -127,7 +128,7 @@ const Signup = () => {
                     </div>
 
                     <div style={{ marginBottom: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Username</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Full Name</label>
                         <div style={{ position: 'relative' }}>
                             <BadgeCheck size={20} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                             <input
@@ -136,7 +137,7 @@ const Signup = () => {
                                 required
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Enter your Username"
+                                placeholder="Enter your full name"
                                 style={{
                                     width: '100%',
                                     padding: '0.75rem 0.75rem 0.75rem 2.5rem',
@@ -150,6 +151,33 @@ const Signup = () => {
                             />
                         </div>
                     </div>
+
+                    {role === 'student' && (
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Roll Number / Student ID</label>
+                            <div style={{ position: 'relative' }}>
+                                <BadgeCheck size={20} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                <input
+                                    type="text"
+                                    name="rollNumber"
+                                    required={role === 'student'}
+                                    value={formData.rollNumber}
+                                    onChange={handleChange}
+                                    placeholder="Enter your Roll Number"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                                        borderRadius: 'var(--radius-md)',
+                                        border: '1px solid var(--border-color)',
+                                        background: 'var(--input-bg)',
+                                        color: 'var(--text-primary)',
+                                        fontSize: '1rem',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     <div style={{ marginBottom: '1rem' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Email Address</label>
