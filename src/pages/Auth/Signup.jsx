@@ -37,7 +37,7 @@ const Signup = () => {
             await signup(formData.name, formData.email, formData.password, role, formData.rollNumber);
             navigate(role === 'admin' ? '/admin-dashboard' : '/student-dashboard');
         } catch (err) {
-            setError('Failed to create account. Please try again.');
+            setError(err.message || 'Failed to create account. Please try again.');
         } finally {
             setLoading(false);
         }
