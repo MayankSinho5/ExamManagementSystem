@@ -7,46 +7,22 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-const authRoutes = require('./routes/authRoutes');
-const examRoutes = require('./routes/examRoutes');
-const noticeRoutes = require('./routes/noticeRoutes');
-const attemptRoutes = require('./routes/attemptRoutes');
-const timetableRoutes = require('./routes/timetableRoutes');
-const seatingRoutes = require('./routes/seatingRoutes');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/exams', examRoutes);
-app.use('/api/notices', noticeRoutes);
-app.use('/api/attempts', attemptRoutes);
-app.use('/api/timetable', timetableRoutes);
-app.use('/api/seating', seatingRoutes);
-
-// Basic Route
-app.get('/', (req, res) => {
-    res.send('Exam Management System API is running...');
-});
-
-// Port
 const PORT = process.env.PORT || 5000;
 
-// Database connection cache
-let isConnected = false;
-
+// Database connection logic for Serverless
 const connectDB = async () => {
-    if (isConnected) return;
+    if (mongoose.connection.readyState >= 1) {
+        return;
+    }
 
     try {
-        console.log('Attempting to connect to MongoDB...');
+        console.log('Connecting to MongoDB Atlas...');
+        // Disable buffering to fail fast if connection is down
+        mongoose.set('bufferCommands', false);
+
         await mongoose.connect(process.env.MONGODB_URI, {
-            serverSelectionTimeoutMS: 8000,
+            serverSelectionTimeoutMS: 10000,
         });
-        isConnected = true;
         console.log('SUCCESS: Connected to MongoDB Atlas');
     } catch (err) {
         console.error('ERROR: MongoDB connection failure:', err.message);
@@ -54,19 +30,20 @@ const connectDB = async () => {
     }
 };
 
-// Middleware to ensure DB connection for every request
+// Global Middlewares
+app.use(cors());
+app.use(express.json());
+
+// Ensure DB connection for every request (Serverless requirement)
 app.use(async (req, res, next) => {
     try {
         await connectDB();
         next();
     } catch (err) {
-        res.status(500).json({ error: 'Database connection failed' });
+        console.error('Request failed due to DB connection error');
+        res.status(500).json({ error: 'Database connection failed. Please try again.' });
     }
 });
-
-// Middleware
-app.use(cors());
-app.use(express.json());
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -88,7 +65,7 @@ app.get('/', (req, res) => {
     res.send('Exam Management System API is running...');
 });
 
-// Listen - Only for local development
+// Local development server
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server is running on port: ${PORT}`);
