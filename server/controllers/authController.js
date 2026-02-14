@@ -15,16 +15,16 @@ exports.signup = async (req, res) => {
     try {
         const { name, rollNumber, email, password, role } = req.body;
 
-        // Check if user exists
-        const existingUser = await User.findOne({
-            $or: [
-                { rollNumber: rollNumber || '____none____' },
-                { email: email || '____none____' }
-            ]
-        });
+        // Check if user exists (only check fields that are provided)
+        const query = [];
+        if (rollNumber) query.push({ rollNumber });
+        if (email) query.push({ email });
 
-        if (existingUser) {
-            return res.status(400).json({ message: 'User already exists with this Roll Number or Email' });
+        if (query.length > 0) {
+            const existingUser = await User.findOne({ $or: query });
+            if (existingUser) {
+                return res.status(400).json({ message: 'User already exists with this Roll Number or Email' });
+            }
         }
 
         // Hash password

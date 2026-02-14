@@ -142,6 +142,7 @@ const StudentList = () => {
                                 <div style={{ background: 'var(--background-color)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'left', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
                                     <div style={{ marginBottom: '0.5rem' }}><strong style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>NAME:</strong><div style={{ color: 'var(--text-primary)' }}>{lastCreated.name}</div></div>
                                     <div style={{ marginBottom: '0.5rem' }}><strong style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>ROLL NUMBER / ID:</strong><div style={{ color: 'var(--text-primary)' }}>{lastCreated.rollNumber}</div></div>
+                                    <div style={{ marginBottom: '0.5rem' }}><strong style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>EMAIL:</strong><div style={{ color: 'var(--text-primary)' }}>{lastCreated.email || 'N/A'}</div></div>
                                     <div style={{ marginBottom: '0.5rem' }}><strong style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>PASSWORD:</strong><div style={{ color: 'var(--text-primary)' }}>{lastCreated.password}</div></div>
                                 </div>
 
@@ -171,6 +172,15 @@ const StudentList = () => {
                                             placeholder="Roll Number"
                                             value={formData.rollNumber}
                                             onChange={e => setFormData({ ...formData, rollNumber: e.target.value })}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Email Address (for notifications)</label>
+                                        <input
+                                            type="email"
+                                            placeholder="student@example.com"
+                                            value={formData.email}
+                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
                                         />
                                     </div>
                                     <div style={{ marginBottom: '1.5rem' }}>
