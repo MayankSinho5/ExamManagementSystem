@@ -10,5 +10,6 @@ router.get('/me', auth, authController.getMe);
 router.get('/students', auth, authController.getAllStudents);
 router.delete('/students/:id', auth, authController.deleteStudent);
 router.put('/update', auth, authController.updateMe);
+router.post('/reset-password', authController.resetPassword);
 
 module.exports = router;

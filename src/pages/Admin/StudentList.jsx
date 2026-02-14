@@ -4,14 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Calendar, Trash2, Plus, X, Lock } from 'lucide-react';
 
 const StudentList = () => {
-    const { getAllStudents, deleteUser, signup } = useAuth();
+    const { getAllStudents, deleteUser, registerStudent } = useAuth();
     const navigate = useNavigate();
     const [students, setStudents] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
-
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [formData, setFormData] = useState({ name: '', email: '', password: '', rollNumber: '' });
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
     const [lastCreated, setLastCreated] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        rollNumber: '',
+        email: '',
+        password: ''
+    });
 
     const fetchStudents = async () => {
         setLoading(true);
@@ -37,14 +43,15 @@ const StudentList = () => {
 
     const handleAddStudent = async (e) => {
         e.preventDefault();
+        setError('');
         try {
-            await signup(formData.name, formData.email, formData.password, 'student', formData.rollNumber);
-            setLastCreated({ ...formData }); // Store for showing success
-            setShowAddModal(true); // Keep modal open for success view
-            setFormData({ name: '', email: '', password: '', rollNumber: '' });
-            fetchStudents(); // Refresh list
-        } catch (error) {
-            alert(error.message);
+            const newStudent = await registerStudent(formData.name, formData.email, formData.password, formData.rollNumber);
+            setSuccess(true);
+            setLastCreated({ ...newStudent, password: formData.password });
+            setFormData({ name: '', rollNumber: '', email: '', password: '' });
+            fetchStudents();
+        } catch (err) {
+            setError(err.message);
         }
     };
 
@@ -61,7 +68,7 @@ const StudentList = () => {
                 <button onClick={() => navigate('/admin-dashboard')} className="btn" style={{ color: 'var(--text-secondary)' }}>
                     <ArrowLeft size={18} style={{ marginRight: '0.5rem' }} /> Back
                 </button>
-                <button onClick={() => { setShowAddModal(true); setLastCreated(null); }} className="btn btn-primary">
+                <button onClick={() => { setIsModalOpen(true); setLastCreated(null); setSuccess(false); }} className="btn btn-primary">
                     <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Student
                 </button>
             </div>
@@ -124,10 +131,10 @@ const StudentList = () => {
             </div>
 
             {/* Add Student Modal / Success Modal */}
-            {showAddModal && (
+            {isModalOpen && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
                     <div className="card" style={{ width: '100%', maxWidth: '400px', position: 'relative' }}>
-                        <button onClick={() => { setShowAddModal(false); setLastCreated(null); }} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-primary)' }}>
+                        <button onClick={() => { setIsModalOpen(false); setLastCreated(null); setSuccess(false); }} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-primary)' }}>
                             <X size={20} />
                         </button>
 

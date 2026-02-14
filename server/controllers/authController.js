@@ -34,7 +34,7 @@ exports.signup = async (req, res) => {
         // Create user
         const user = await User.create({
             name,
-            rollNumber,
+            rollNumber: role === 'student' ? rollNumber : undefined,
             email,
             password: hashedPassword,
             role
@@ -139,6 +139,26 @@ exports.updateMe = async (req, res) => {
             rollNumber: user.rollNumber,
             email: user.email
         });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Reset Password Logic (Simple implementation for now)
+exports.resetPassword = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User with this email not found' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+        await user.save();
+
+        res.status(200).json({ message: 'Password reset successful' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

@@ -57,6 +57,16 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const registerStudent = async (name, email, password, rollNumber) => {
+        try {
+            // This is same as signup but DOES NOT set user state (prevents auto-login for admin)
+            const res = await API.post('/auth/signup', { name, email, password, role: 'student', rollNumber });
+            return res.data.user;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || err.message || 'Student registration failed');
+        }
+    };
+
     const logout = () => {
         setUser(null);
         localStorage.removeItem('token');
@@ -94,8 +104,17 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const resetPassword = async (email, password) => {
+        try {
+            const res = await API.post('/auth/reset-password', { email, password });
+            return res.data;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || 'Error resetting password');
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, loading, getAllStudents, deleteUser, updateUser }}>
+        <AuthContext.Provider value={{ user, login, signup, registerStudent, logout, loading, getAllStudents, deleteUser, updateUser, resetPassword }}>
             {!loading && children}
         </AuthContext.Provider>
     );
