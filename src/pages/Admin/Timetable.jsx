@@ -92,25 +92,25 @@ const Timetable = () => {
             <div className="card">
                 <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Current Schedule</h2>
                 <div style={{ display: 'grid', gap: '1rem' }}>
-                    {timetable.length === 0 ? (
+                    {!Array.isArray(timetable) || timetable.length === 0 ? (
                         <p style={{ color: 'var(--text-secondary)' }}>No timetable scheduled.</p>
                     ) : timetable.map(item => (
                         <div key={item._id || item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'var(--background-color)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
                             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '180px' }}>
                                     <BookOpen size={18} color="var(--primary-color)" />
-                                    <span style={{ fontWeight: '500' }}>{item.subject}</span>
+                                    <span style={{ fontWeight: '500' }}>{item.subject || 'N/A'}</span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '120px' }}>
                                     <Calendar size={18} color="var(--text-secondary)" />
-                                    <span style={{ color: 'var(--text-secondary)' }}>{new Date(item.date).toLocaleDateString()}</span>
+                                    <span style={{ color: 'var(--text-secondary)' }}>{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <Clock size={18} color="var(--text-secondary)" />
-                                    <span style={{ color: 'var(--text-secondary)' }}>{item.startTime} - {item.endTime}</span>
+                                    <span style={{ color: 'var(--text-secondary)' }}>{item.startTime || '--:--'} - {item.endTime || '--:--'}</span>
                                 </div>
                                 <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', background: 'var(--border-color)', padding: '0.2rem 0.6rem', borderRadius: '1rem' }}>
-                                    {item.venue}
+                                    {item.venue || 'TBD'}
                                 </div>
                             </div>
                             <button onClick={() => deleteTimetableItem(item._id || item.id)} style={{ background: 'transparent', border: 'none', color: 'var(--error-color)', cursor: 'pointer' }}>
