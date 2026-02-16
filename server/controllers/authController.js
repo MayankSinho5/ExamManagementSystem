@@ -172,7 +172,7 @@ exports.bulkSignup = async (req, res) => {
             return res.status(400).json({ message: 'Invalid data format. Expected an array of students.' });
         }
 
-        const results = { success: 0, failed: 0, errors: [] };
+        const results = { success: 0, failed: 0, errors: [], studentsAdded: [] };
         const salt = await bcrypt.genSalt(10);
 
         for (const studentData of students) {
@@ -203,6 +203,13 @@ exports.bulkSignup = async (req, res) => {
                     password: hashedPassword,
                     role: 'student'
                 });
+
+                // Send email if provided
+                if (email) {
+                    sendCredentialsEmail(email, name, rollNumber, password);
+                }
+
+                results.studentsAdded.push({ name, rollNumber, email, password });
                 results.success++;
             } catch (err) {
                 results.failed++;

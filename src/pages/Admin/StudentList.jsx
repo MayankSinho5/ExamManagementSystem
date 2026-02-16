@@ -152,6 +152,18 @@ const StudentList = () => {
                             </ul>
                         </details>
                     )}
+                    <button
+                        onClick={() => {
+                            const ws = XLSX.utils.json_to_sheet(bulkResult.results.studentsAdded || []);
+                            const wb = XLSX.utils.book_new();
+                            XLSX.utils.book_append_sheet(wb, ws, "Credentials");
+                            XLSX.writeFile(wb, "Student_Credentials.xlsx");
+                        }}
+                        className="btn btn-secondary"
+                        style={{ marginTop: '1rem', width: '100%', fontSize: '0.85rem' }}
+                    >
+                        <FileText size={16} /> Download New Credentials (Excel)
+                    </button>
                 </div>
             )}
 
