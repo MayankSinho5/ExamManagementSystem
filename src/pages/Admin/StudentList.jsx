@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Calendar, Trash2, Plus, X, Lock, Upload, FileText } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Trash2, Plus, X, Lock, Upload, FileText, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const StudentList = () => {
@@ -21,6 +21,7 @@ const StudentList = () => {
     });
     const [bulkLoading, setBulkLoading] = useState(false);
     const [bulkResult, setBulkResult] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fetchStudents = async () => {
         setLoading(true);
@@ -47,14 +48,20 @@ const StudentList = () => {
     const handleAddStudent = async (e) => {
         e.preventDefault();
         setError('');
+        setIsSubmitting(true);
+        console.log("Attempting to Register Student:", formData);
         try {
             const newStudent = await registerStudent(formData.name, formData.email, formData.password, formData.rollNumber);
+            console.log("Registration Success:", newStudent);
             setSuccess(true);
             setLastCreated({ ...newStudent, password: formData.password });
             setFormData({ name: '', rollNumber: '', email: '', password: '' });
             fetchStudents();
         } catch (err) {
+            console.error("Registration Error:", err.message);
             setError(err.message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -254,6 +261,13 @@ const StudentList = () => {
                         ) : (
                             <>
                                 <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Add New Student</h2>
+
+                                {error && (
+                                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error-color)', padding: '0.75rem', borderRadius: 'var(--radius-md)', marginBottom: '1rem', fontSize: '0.85rem', border: '1px solid var(--error-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <AlertCircle size={16} /> {error}
+                                    </div>
+                                )}
+
                                 <form onSubmit={handleAddStudent}>
                                     <div style={{ marginBottom: '1rem' }}>
                                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Full Name</label>
@@ -294,7 +308,9 @@ const StudentList = () => {
                                             onChange={e => setFormData({ ...formData, password: e.target.value })}
                                         />
                                     </div>
-                                    <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Create Student Account</button>
+                                    <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%' }}>
+                                        {isSubmitting ? 'Creating Account...' : 'Create Student Account'}
+                                    </button>
                                 </form>
                             </>
                         )}
