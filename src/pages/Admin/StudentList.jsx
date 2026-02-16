@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Calendar, Trash2, Plus, X, Lock } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Trash2, Plus, X, Lock, Upload, FileText } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const StudentList = () => {
     const { getAllStudents, deleteUser, registerStudent } = useAuth();
@@ -18,6 +19,8 @@ const StudentList = () => {
         email: '',
         password: ''
     });
+    const [bulkLoading, setBulkLoading] = useState(false);
+    const [bulkResult, setBulkResult] = useState(null);
 
     const fetchStudents = async () => {
         setLoading(true);
@@ -62,16 +65,82 @@ const StudentList = () => {
         alert('Credentials copied to clipboard! You can now share them with the student.');
     };
 
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setBulkLoading(true);
+        setError('');
+        setBulkResult(null);
+
+        try {
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                const bstr = evt.target.result;
+                const wb = XLSX.read(bstr, { type: 'binary' });
+                const wsname = wb.SheetNames[0];
+                const ws = wb.Sheets[wsname];
+                const data = XLSX.utils.sheet_to_json(ws);
+
+                if (data.length === 0) {
+                    throw new Error('The file is empty or invalid.');
+                }
+
+                // Map header names (flexible mapping)
+                const studentsArray = data.map(row => ({
+                    name: row.name || row.Name || row['Full Name'],
+                    rollNumber: row.rollNumber || row.RollNumber || row['Roll Number'] || row.id || row.ID,
+                    email: row.email || row.Email,
+                    password: (row.password || row.Password || '123456').toString()
+                }));
+
+                const result = await bulkRegisterStudents(studentsArray);
+                setBulkResult(result);
+                fetchStudents();
+            };
+            reader.readAsBinaryString(file);
+        } catch (err) {
+            setError('Failed to process file: ' + err.message);
+        } finally {
+            setBulkLoading(false);
+            e.target.value = null; // reset input
+        }
+    };
+
     return (
         <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
                 <button onClick={() => navigate('/admin-dashboard')} className="btn" style={{ color: 'var(--text-secondary)' }}>
                     <ArrowLeft size={18} style={{ marginRight: '0.5rem' }} /> Back
                 </button>
-                <button onClick={() => { setIsModalOpen(true); setLastCreated(null); setSuccess(false); }} className="btn btn-primary">
-                    <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Student
-                </button>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <label className="btn btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Upload size={18} /> {bulkLoading ? 'Uploading...' : 'Bulk Upload (Excel)'}
+                        <input type="file" hidden accept=".xlsx, .xls, .csv" onChange={handleFileUpload} disabled={bulkLoading} />
+                    </label>
+                    <button onClick={() => { setIsModalOpen(true); setLastCreated(null); setSuccess(false); }} className="btn btn-primary">
+                        <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Student
+                    </button>
+                </div>
             </div>
+
+            {bulkResult && (
+                <div className="card" style={{ marginBottom: '1.5rem', border: '1px solid var(--success-color)', background: 'rgba(16, 185, 129, 0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ fontSize: '1rem', color: 'var(--success-color)' }}>Bulk Upload Result</h3>
+                        <button onClick={() => setBulkResult(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={16} /></button>
+                    </div>
+                    <p style={{ margin: '0.5rem 0', fontSize: '0.9rem' }}>{bulkResult.message}</p>
+                    {bulkResult.results.errors.length > 0 && (
+                        <details style={{ fontSize: '0.85rem' }}>
+                            <summary style={{ cursor: 'pointer', color: 'var(--error-color)' }}>View {bulkResult.results.errors.length} Errors</summary>
+                            <ul style={{ maxHeight: '100px', overflowY: 'auto', paddingLeft: '1.5rem', marginTop: '0.5rem' }}>
+                                {bulkResult.results.errors.map((err, i) => <li key={i}>{err}</li>)}
+                            </ul>
+                        </details>
+                    )}
+                </div>
+            )}
 
             <div className="card">
                 <h1 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}>Manage Students</h1>

@@ -163,3 +163,59 @@ exports.resetPassword = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+// Bulk Signup controller for Admin
+exports.bulkSignup = async (req, res) => {
+    try {
+        const { students } = req.body;
+        if (!Array.isArray(students)) {
+            return res.status(400).json({ message: 'Invalid data format. Expected an array of students.' });
+        }
+
+        const results = { success: 0, failed: 0, errors: [] };
+        const salt = await bcrypt.genSalt(10);
+
+        for (const studentData of students) {
+            try {
+                const { name, rollNumber, email, password } = studentData;
+                if (!name || (!rollNumber && !email) || !password) {
+                    results.failed++;
+                    results.errors.push(`Missing data for student: ${name || 'Unknown'}`);
+                    continue;
+                }
+
+                const query = [];
+                if (rollNumber) query.push({ rollNumber });
+                if (email) query.push({ email });
+
+                const existingUser = await User.findOne({ $or: query });
+                if (existingUser) {
+                    results.failed++;
+                    results.errors.push(`User already exists: ${rollNumber || email}`);
+                    continue;
+                }
+
+                const hashedPassword = await bcrypt.hash(password.toString(), salt);
+                await User.create({
+                    name,
+                    rollNumber: rollNumber || undefined,
+                    email,
+                    password: hashedPassword,
+                    role: 'student'
+                });
+                results.success++;
+            } catch (err) {
+                results.failed++;
+                results.errors.push(err.message);
+            }
+        }
+
+        res.status(200).json({
+            message: `Bulk registration completed. ${results.success} succeeded, ${results.failed} failed.`,
+            results
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
