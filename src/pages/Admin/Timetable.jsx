@@ -7,6 +7,8 @@ const Timetable = () => {
     const { timetable, addTimetableItem, deleteTimetableItem } = useAdmin();
     const navigate = useNavigate();
 
+    const [subject, setSubject] = useState('');
+    const [date, setDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [venue, setVenue] = useState('Main Hall');
