@@ -67,6 +67,15 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const bulkRegisterStudents = async (students) => {
+        try {
+            const res = await API.post('/auth/bulk-signup', { students });
+            return res.data;
+        } catch (err) {
+            throw new Error(err.response?.data?.message || err.message || 'Bulk registration failed');
+        }
+    };
+
     const logout = () => {
         setUser(null);
         localStorage.removeItem('token');
@@ -114,7 +123,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, registerStudent, logout, loading, getAllStudents, deleteUser, updateUser, resetPassword }}>
+        <AuthContext.Provider value={{ user, login, signup, registerStudent, bulkRegisterStudents, logout, loading, getAllStudents, deleteUser, updateUser, resetPassword }}>
             {!loading && children}
         </AuthContext.Provider>
     );

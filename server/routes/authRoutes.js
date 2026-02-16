@@ -11,5 +11,6 @@ router.get('/students', auth, authController.getAllStudents);
 router.delete('/students/:id', auth, authController.deleteStudent);
 router.put('/update', auth, authController.updateMe);
 router.post('/reset-password', authController.resetPassword);
+router.post('/bulk-signup', auth, authController.bulkSignup);
 
 module.exports = router;
