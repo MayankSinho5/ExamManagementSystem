@@ -5,7 +5,7 @@ import { ArrowLeft, User, Mail, Calendar, Trash2, Plus, X, Lock, Upload, FileTex
 import * as XLSX from 'xlsx';
 
 const StudentList = () => {
-    const { getAllStudents, deleteUser, registerStudent } = useAuth();
+    const { getAllStudents, deleteUser, registerStudent, bulkRegisterStudents } = useAuth();
     const navigate = useNavigate();
     const [students, setStudents] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,15 +86,28 @@ const StudentList = () => {
                     throw new Error('The file is empty or invalid.');
                 }
 
+                console.log("Parsed Excel Data:", data);
+
                 // Map header names (flexible mapping)
-                const studentsArray = data.map(row => ({
-                    name: row.name || row.Name || row['Full Name'],
-                    rollNumber: row.rollNumber || row.RollNumber || row['Roll Number'] || row.id || row.ID,
-                    email: row.email || row.Email,
-                    password: (row.password || row.Password || '123456').toString()
-                }));
+                const studentsArray = data.map(row => {
+                    // Try to find values regardless of case
+                    const getVal = (keys) => {
+                        const foundKey = Object.keys(row).find(k => keys.includes(k.toLowerCase().trim()));
+                        return foundKey ? row[foundKey] : null;
+                    };
+
+                    return {
+                        name: getVal(['name', 'full name', 'fullname', 'student name']),
+                        rollNumber: getVal(['rollnumber', 'roll number', 'rollno', 'roll no', 'id', 'student id', 'student_id']),
+                        email: getVal(['email', 'email address', 'email_address']),
+                        password: (getVal(['password', 'pass']) || '123456').toString()
+                    };
+                });
+
+                console.log("Mapped Students for Registry:", studentsArray);
 
                 const result = await bulkRegisterStudents(studentsArray);
+                console.log("Bulk Upload Result:", result);
                 setBulkResult(result);
                 fetchStudents();
             };
