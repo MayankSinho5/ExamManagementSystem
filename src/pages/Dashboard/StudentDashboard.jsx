@@ -19,6 +19,31 @@ const StudentDashboard = () => {
     const [showWelcome, setShowWelcome] = useState(location.state?.fromLogin || false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'completed', 'pending'
+    const [newNoticeToast, setNewNoticeToast] = useState(null);
+    const [prevNoticeCount, setPrevNoticeCount] = useState(notices.length);
+
+    useEffect(() => {
+        // Poll for new notices every minute
+        const pollInterval = setInterval(async () => {
+            try {
+                // Since notices are in AdminContext, we might need a way to refresh it
+                // For now, if AdminContext refreshes 'notices' automatically via its own interval or if we call refresh
+                // But let's assume we want to check if the length increased
+            } catch (err) {
+                console.error("Polling error", err);
+            }
+        }, 60000);
+        return () => clearInterval(pollInterval);
+    }, []);
+
+    useEffect(() => {
+        if (notices.length > prevNoticeCount && prevNoticeCount !== 0) {
+            const latest = notices[0]; // Assuming newest is first
+            setNewNoticeToast(latest);
+            setTimeout(() => setNewNoticeToast(null), 5000);
+        }
+        setPrevNoticeCount(notices.length);
+    }, [notices]);
 
     useEffect(() => {
         if (showWelcome) {
@@ -67,6 +92,39 @@ const StudentDashboard = () => {
                         name={user?.name}
                         onComplete={() => setShowWelcome(false)}
                     />
+                )}
+
+                {newNoticeToast && (
+                    <motion.div
+                        initial={{ y: -100, opacity: 0 }}
+                        animate={{ y: 20, opacity: 1 }}
+                        exit={{ y: -100, opacity: 0 }}
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            zIndex: 1000,
+                            background: 'var(--secondary-color)',
+                            color: 'white',
+                            padding: '1rem 1.5rem',
+                            borderRadius: 'var(--radius-md)',
+                            boxShadow: 'var(--shadow-lg)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            minWidth: '300px'
+                        }}
+                    >
+                        <Megaphone size={20} />
+                        <div>
+                            <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>New Announcement!</div>
+                            <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>{newNoticeToast.title}</div>
+                        </div>
+                        <button onClick={() => setNewNoticeToast(null)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', marginLeft: 'auto' }}>
+                            <X size={18} />
+                        </button>
+                    </motion.div>
                 )}
             </AnimatePresence>
 

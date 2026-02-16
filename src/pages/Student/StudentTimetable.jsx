@@ -1,7 +1,6 @@
-import React from 'react';
-import { useAdmin } from '../../context/AdminContext';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, BookOpen, MapPin } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, BookOpen, MapPin, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const StudentTimetable = () => {
     const { timetable } = useAdmin();
@@ -15,13 +14,37 @@ const StudentTimetable = () => {
         return a.startTime.localeCompare(b.startTime);
     });
 
+    const downloadPDF = async () => {
+        const element = document.getElementById('timetable-content');
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--background-color')
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('Student_Timetable.pdf');
+    };
+
     return (
         <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
-            <button onClick={() => navigate('/student-dashboard')} className="btn" style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
-                <ArrowLeft size={18} style={{ marginRight: '0.5rem' }} /> Back to Dashboard
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <button onClick={() => navigate('/student-dashboard')} className="btn" style={{ color: 'var(--text-secondary)' }}>
+                    <ArrowLeft size={18} style={{ marginRight: '0.5rem' }} /> Back
+                </button>
+                {sortedTimetable.length > 0 && (
+                    <button onClick={downloadPDF} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Download size={18} /> Download PDF
+                    </button>
+                )}
+            </div>
 
-            <div className="card">
+            <div className="card" id="timetable-content">
                 <h1 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}>Class & Exam Schedule</h1>
 
                 {sortedTimetable.length === 0 ? (
