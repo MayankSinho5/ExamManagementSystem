@@ -38,10 +38,21 @@ export const AdminProvider = ({ children }) => {
                     ...doc.plan,
                     _id: doc._id,
                     updatedAt: doc.updatedAt,
-                    roomNumber: doc.roomNumber || doc.plan?.roomNumber
+                    roomNumber: String(doc.roomNumber || doc.plan?.roomNumber || '').trim()
                 }))
                 : [];
-            setSeatingPlans(plans);
+
+            // Deduplicate by roomNumber to be absolutely safe
+            const uniquePlans = [];
+            const seenRooms = new Set();
+            plans.forEach(plan => {
+                if (plan.roomNumber && !seenRooms.has(plan.roomNumber)) {
+                    uniquePlans.push(plan);
+                    seenRooms.add(plan.roomNumber);
+                }
+            });
+
+            setSeatingPlans(uniquePlans);
         } catch (err) {
             console.error('Error fetching seating plans:', err);
         }
@@ -114,12 +125,12 @@ export const AdminProvider = ({ children }) => {
                 ...doc.plan,
                 _id: doc._id,
                 updatedAt: doc.updatedAt,
-                roomNumber: doc.roomNumber || doc.plan?.roomNumber
+                roomNumber: String(doc.roomNumber || doc.plan?.roomNumber || '').trim()
             };
 
             // Update the local list using robust comparison
             setSeatingPlans(prev => {
-                const roomIdx = prev.findIndex(p => String(p.roomNumber) === String(updatedPlan.roomNumber));
+                const roomIdx = prev.findIndex(p => String(p.roomNumber).trim() === updatedPlan.roomNumber);
                 if (roomIdx > -1) {
                     const newList = [...prev];
                     newList[roomIdx] = updatedPlan;
@@ -135,10 +146,11 @@ export const AdminProvider = ({ children }) => {
         }
     };
 
-    const deleteSeatingPlan = async (roomNumber) => {
+    const deleteSeatingPlan = async (roomNum) => {
         try {
-            await API.delete(`/seating/${roomNumber}`);
-            setSeatingPlans(prev => prev.filter(p => p.roomNumber !== roomNumber));
+            await API.delete(`/seating/${roomNum}`);
+            const targetRoom = String(roomNum).trim();
+            setSeatingPlans(prev => prev.filter(p => String(p.roomNumber).trim() !== targetRoom));
         } catch (err) {
             console.error('Error deleting seating plan:', err);
             throw err;
