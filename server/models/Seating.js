@@ -6,7 +6,8 @@ const seatingSchema = new mongoose.Schema({
     roomNumber: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true
     },
     plan: {
         type: mongoose.Schema.Types.Mixed,

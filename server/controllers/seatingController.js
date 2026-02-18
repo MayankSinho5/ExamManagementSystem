@@ -14,13 +14,13 @@ exports.getSeatingPlans = async (req, res) => {
 exports.updateSeatingPlan = async (req, res) => {
     try {
         const { plan } = req.body;
-        const roomNumber = plan.roomNumber || 'Unknown';
+        const roomNumber = String(plan.roomNumber || 'Unknown').trim();
 
         // Update if exists, or create new (Upsert)
         const seating = await Seating.findOneAndUpdate(
             { roomNumber },
             {
-                plan,
+                plan: { ...plan, roomNumber }, // Ensure plan object also has trimmed roomNumber
                 updatedBy: req.user.id
             },
             { new: true, upsert: true }
@@ -35,7 +35,7 @@ exports.updateSeatingPlan = async (req, res) => {
 // Delete a specific room plan
 exports.deleteSeatingPlan = async (req, res) => {
     try {
-        const { roomNumber } = req.params;
+        const roomNumber = String(req.params.roomNumber).trim();
         await Seating.findOneAndDelete({ roomNumber });
         res.status(200).json({ message: `Room ${roomNumber} deleted successfully` });
     } catch (err) {

@@ -71,8 +71,9 @@ const SeatingArrangement = () => {
             alert('Please enter a Room Number');
             return;
         }
+        const trimmedRoom = String(roomNumber).trim();
         const data = {
-            roomNumber,
+            roomNumber: trimmedRoom,
             totalBenches,
             studentsPerBench,
             arrangement,
@@ -229,6 +230,7 @@ const SeatingArrangement = () => {
                                         placeholder="e.g. 101"
                                         value={roomNumber}
                                         onChange={(e) => setRoomNumber(e.target.value)}
+                                        onBlur={(e) => setRoomNumber(e.target.value.trim())}
                                         style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
                                     />
                                 </div>
