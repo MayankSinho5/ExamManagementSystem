@@ -109,7 +109,10 @@ const SeatingArrangement = () => {
             return;
         }
 
-        const toAssign = [...availableStudents];
+        const toAssign = [...availableStudents].sort((a, b) => {
+            // Numeric sort for roll numbers (handles strings like '101' correctly)
+            return String(a.rollNumber).localeCompare(String(b.rollNumber), undefined, { numeric: true, sensitivity: 'base' });
+        });
         const newArrangement = [];
         let studentIndex = 0;
 
