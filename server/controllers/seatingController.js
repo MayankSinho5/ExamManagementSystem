@@ -31,3 +31,14 @@ exports.updateSeatingPlan = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+// Delete a specific room plan
+exports.deleteSeatingPlan = async (req, res) => {
+    try {
+        const { roomNumber } = req.params;
+        await Seating.findOneAndDelete({ roomNumber });
+        res.status(200).json({ message: `Room ${roomNumber} deleted successfully` });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

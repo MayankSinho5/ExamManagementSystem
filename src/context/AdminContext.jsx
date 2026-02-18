@@ -120,6 +120,16 @@ export const AdminProvider = ({ children }) => {
         }
     };
 
+    const deleteSeatingPlan = async (roomNumber) => {
+        try {
+            await API.delete(`/seating/${roomNumber}`);
+            setSeatingPlans(prev => prev.filter(p => p.roomNumber !== roomNumber));
+        } catch (err) {
+            console.error('Error deleting seating plan:', err);
+            throw err;
+        }
+    };
+
     return (
         <AdminContext.Provider value={{
             timetable,
@@ -130,6 +140,7 @@ export const AdminProvider = ({ children }) => {
             addNotice,
             deleteNotice,
             updateSeatingPlan,
+            deleteSeatingPlan,
             loading,
             refreshData: loadAllData
         }}>
