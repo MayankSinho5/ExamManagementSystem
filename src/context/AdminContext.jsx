@@ -8,7 +8,7 @@ export const useAdmin = () => useContext(AdminContext);
 export const AdminProvider = ({ children }) => {
     const [timetable, setTimetable] = useState([]);
     const [notices, setNotices] = useState([]);
-    const [seatingPlan, setSeatingPlan] = useState(null);
+    const [seatingPlans, setSeatingPlans] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchNotices = async () => {
@@ -29,12 +29,14 @@ export const AdminProvider = ({ children }) => {
         }
     };
 
-    const fetchSeatingPlan = async () => {
+    const fetchSeatingPlans = async () => {
         try {
             const res = await API.get('/seating');
-            if (res.data) setSeatingPlan(res.data.plan);
+            // Backend now returns an array of documents, each with a .plan object
+            const plans = Array.isArray(res.data) ? res.data.map(doc => doc.plan) : [];
+            setSeatingPlans(plans);
         } catch (err) {
-            console.error('Error fetching seating plan:', err);
+            console.error('Error fetching seating plans:', err);
         }
     };
 
@@ -44,7 +46,7 @@ export const AdminProvider = ({ children }) => {
             await Promise.all([
                 fetchNotices(),
                 fetchTimetable(),
-                fetchSeatingPlan()
+                fetchSeatingPlans()
             ]);
         } catch (err) {
             console.error('Error loading admin data:', err);
@@ -98,8 +100,20 @@ export const AdminProvider = ({ children }) => {
     const updateSeatingPlan = async (plan) => {
         try {
             const res = await API.post('/seating/update', { plan });
-            setSeatingPlan(res.data.plan);
-            return res.data.plan;
+            const updatedPlan = res.data.plan;
+
+            // Update the local list of plans
+            setSeatingPlans(prev => {
+                const roomIdx = prev.findIndex(p => p.roomNumber === updatedPlan.roomNumber);
+                if (roomIdx > -1) {
+                    const newList = [...prev];
+                    newList[roomIdx] = updatedPlan;
+                    return newList;
+                }
+                return [updatedPlan, ...prev];
+            });
+
+            return updatedPlan;
         } catch (err) {
             console.error('Error updating seating plan:', err);
             throw err;
@@ -110,7 +124,7 @@ export const AdminProvider = ({ children }) => {
         <AdminContext.Provider value={{
             timetable,
             notices,
-            seatingPlan,
+            seatingPlans,
             addTimetableItem,
             deleteTimetableItem,
             addNotice,

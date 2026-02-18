@@ -1,32 +1,30 @@
 const Seating = require('../models/Seating');
 
-// Get seating plan (Latest)
-exports.getSeatingPlan = async (req, res) => {
+// Get all seating plans
+exports.getSeatingPlans = async (req, res) => {
     try {
-        const seating = await Seating.findOne().sort({ updatedAt: -1 });
+        const seating = await Seating.find().sort({ updatedAt: -1 });
         res.status(200).json(seating);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
 
-// Update or Create Seating Plan
+// Update or Create Seating Plan for a specific room
 exports.updateSeatingPlan = async (req, res) => {
     try {
         const { plan } = req.body;
-        // We find the first one and update it, or create if none exists
-        let seating = await Seating.findOne();
+        const roomNumber = plan.roomNumber || 'Unknown';
 
-        if (seating) {
-            seating.plan = plan;
-            seating.updatedBy = req.user.id;
-            await seating.save();
-        } else {
-            seating = await Seating.create({
+        // Update if exists, or create new (Upsert)
+        const seating = await Seating.findOneAndUpdate(
+            { roomNumber },
+            {
                 plan,
                 updatedBy: req.user.id
-            });
-        }
+            },
+            { new: true, upsert: true }
+        );
 
         res.status(200).json(seating);
     } catch (err) {

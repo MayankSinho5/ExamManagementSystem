@@ -6,20 +6,25 @@ import { ArrowLeft, Grid, User, MapPin } from 'lucide-react';
 
 const StudentSeating = () => {
     const { user } = useAuth();
-    const { seatingPlan } = useAdmin();
+    const { seatingPlans } = useAdmin();
     const navigate = useNavigate();
 
-    // Find student's seat in the arrangement
+    // Find student's seat in ANY of the arrangements
+    let myPlan = null;
     let myBench = null;
     let partners = [];
 
-    if (seatingPlan && seatingPlan.arrangement) {
-        myBench = seatingPlan.arrangement.find(bench =>
-            bench.students.some(s => (s._id || s.id) === (user._id || user.id))
-        );
-
-        if (myBench) {
-            partners = myBench.students.filter(s => (s._id || s.id) !== (user._id || user.id));
+    if (Array.isArray(seatingPlans)) {
+        for (const plan of seatingPlans) {
+            const foundBench = plan.arrangement.find(bench =>
+                bench.students.some(s => (s._id || s.id || s.rollNumber) === (user._id || user.id || user.rollNumber))
+            );
+            if (foundBench) {
+                myPlan = plan;
+                myBench = foundBench;
+                partners = foundBench.students.filter(s => (s._id || s.id || s.rollNumber) !== (user._id || user.id || user.rollNumber));
+                break;
+            }
         }
     }
 
@@ -40,7 +45,7 @@ const StudentSeating = () => {
                     </div>
                 </div>
 
-                {!seatingPlan ? (
+                {(!seatingPlans || seatingPlans.length === 0) ? (
                     <div style={{ textAlign: 'center', padding: '4rem' }}>
                         <div style={{ background: 'var(--background-color)', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid var(--border-color)' }}>
                             <Grid size={40} color="var(--text-secondary)" />
@@ -54,7 +59,7 @@ const StudentSeating = () => {
                             <User size={40} color="#f97316" />
                         </div>
                         <h3>Not Assigned</h3>
-                        <p style={{ color: 'var(--text-secondary)' }}>You haven't been assigned a seat in the current plan. Please contact the administrator.</p>
+                        <p style={{ color: 'var(--text-secondary)' }}>You haven't been assigned a seat in any of the current plans. Please contact the administrator.</p>
                     </div>
                 ) : (
                     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -62,7 +67,7 @@ const StudentSeating = () => {
                             <div style={{ background: 'var(--background-color)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', textAlign: 'center' }}>
                                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: '500' }}>Room Number</div>
                                 <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                    <MapPin size={24} /> {seatingPlan.roomNumber}
+                                    <MapPin size={24} /> {myPlan.roomNumber}
                                 </div>
                             </div>
                             <div style={{ background: 'var(--background-color)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', textAlign: 'center' }}>
@@ -84,7 +89,7 @@ const StudentSeating = () => {
                                             </div>
                                             <div>
                                                 <div style={{ fontWeight: '600' }}>{partner.name}</div>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{partner.email}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{partner.rollNumber || partner.email}</div>
                                             </div>
                                         </div>
                                     ))}
@@ -95,7 +100,7 @@ const StudentSeating = () => {
                         </div>
 
                         <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: 'var(--radius-md)', color: 'var(--success-color)', border: '1px solid var(--success-color)', fontSize: '0.9rem', textAlign: 'center' }}>
-                            Updated on: {new Date(seatingPlan.updatedAt).toLocaleString()}
+                            Updated on: {new Date(myPlan.updatedAt).toLocaleString()}
                         </div>
                     </div>
                 )}
