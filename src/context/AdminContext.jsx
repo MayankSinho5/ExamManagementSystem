@@ -32,8 +32,15 @@ export const AdminProvider = ({ children }) => {
     const fetchSeatingPlans = async () => {
         try {
             const res = await API.get('/seating');
-            // Backend now returns an array of documents, each with a .plan object
-            const plans = Array.isArray(res.data) ? res.data.map(doc => doc.plan) : [];
+            // Unpack documents to get consistent flattened objects
+            const plans = Array.isArray(res.data)
+                ? res.data.map(doc => ({
+                    ...doc.plan,
+                    _id: doc._id,
+                    updatedAt: doc.updatedAt,
+                    roomNumber: doc.roomNumber || doc.plan?.roomNumber
+                }))
+                : [];
             setSeatingPlans(plans);
         } catch (err) {
             console.error('Error fetching seating plans:', err);
@@ -97,14 +104,22 @@ export const AdminProvider = ({ children }) => {
         }
     };
 
-    const updateSeatingPlan = async (plan) => {
+    const updateSeatingPlan = async (planData) => {
         try {
-            const res = await API.post('/seating/update', { plan });
-            const updatedPlan = res.data.plan;
+            const res = await API.post('/seating/update', { plan: planData });
+            const doc = res.data;
 
-            // Update the local list of plans
+            // Unpack the updated document for consistent state
+            const updatedPlan = {
+                ...doc.plan,
+                _id: doc._id,
+                updatedAt: doc.updatedAt,
+                roomNumber: doc.roomNumber || doc.plan?.roomNumber
+            };
+
+            // Update the local list using robust comparison
             setSeatingPlans(prev => {
-                const roomIdx = prev.findIndex(p => p.roomNumber === updatedPlan.roomNumber);
+                const roomIdx = prev.findIndex(p => String(p.roomNumber) === String(updatedPlan.roomNumber));
                 if (roomIdx > -1) {
                     const newList = [...prev];
                     newList[roomIdx] = updatedPlan;
