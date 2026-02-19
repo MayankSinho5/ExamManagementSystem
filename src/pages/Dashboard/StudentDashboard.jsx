@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useExam } from '../../context/ExamContext';
 import { useAdmin } from '../../context/AdminContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, GraduationCap, Play, CheckCircle, Clock, Grid, Megaphone, User, Download } from 'lucide-react';
+import { LogOut, GraduationCap, Play, CheckCircle, Clock, Grid, Megaphone, User, Download, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WelcomeScreen from '../../components/WelcomeScreen';
 import ThemeToggle from '../../components/ThemeToggle';

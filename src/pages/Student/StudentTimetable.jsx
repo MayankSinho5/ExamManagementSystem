@@ -1,3 +1,6 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAdmin } from '../../context/AdminContext';
 import { ArrowLeft, Calendar, Clock, BookOpen, MapPin, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -7,12 +10,12 @@ const StudentTimetable = () => {
     const navigate = useNavigate();
 
     // Sort timetable by date and startTime
-    const sortedTimetable = [...timetable].sort((a, b) => {
+    const sortedTimetable = Array.isArray(timetable) ? [...timetable].sort((a, b) => {
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         if (dateA - dateB !== 0) return dateA - dateB;
-        return a.startTime.localeCompare(b.startTime);
-    });
+        return (a.startTime || '').localeCompare(b.startTime || '');
+    }) : [];
 
     const downloadPDF = async () => {
         const element = document.getElementById('timetable-content');
