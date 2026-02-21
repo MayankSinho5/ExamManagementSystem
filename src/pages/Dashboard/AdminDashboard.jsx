@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useExam } from '../../context/ExamContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Plus, Trash, FileText, Clock, Grid, User } from 'lucide-react';
+import { LogOut, LayoutDashboard, Plus, Trash, FileText, Clock, Grid, User, Megaphone, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WelcomeScreen from '../../components/WelcomeScreen';
 import ThemeToggle from '../../components/ThemeToggle';
@@ -29,9 +29,9 @@ const AdminDashboard = () => {
         navigate('/login');
     };
 
-    const filteredExams = exams.filter(exam =>
+    const filteredExams = Array.isArray(exams) ? exams.filter(exam =>
         exam.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ) : [];
 
     return (
         <>
