@@ -52,6 +52,7 @@ const noticeRoutes = require('./routes/noticeRoutes');
 const attemptRoutes = require('./routes/attemptRoutes');
 const timetableRoutes = require('./routes/timetableRoutes');
 const seatingRoutes = require('./routes/seatingRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/exams', examRoutes);
@@ -59,6 +60,7 @@ app.use('/api/notices', noticeRoutes);
 app.use('/api/attempts', attemptRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/seating', seatingRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 // Base route
 app.get('/', (req, res) => {

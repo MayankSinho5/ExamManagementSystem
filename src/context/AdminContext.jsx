@@ -157,6 +157,26 @@ export const AdminProvider = ({ children }) => {
         }
     };
 
+    const fetchRoomAttendance = async (roomNumber, date) => {
+        try {
+            const res = await API.get('/attendance/room', { params: { roomNumber, date } });
+            return res.data;
+        } catch (err) {
+            console.error('Error fetching room attendance:', err);
+            return [];
+        }
+    };
+
+    const markAttendance = async (attendanceData) => {
+        try {
+            const res = await API.post('/attendance/mark', attendanceData);
+            return res.data;
+        } catch (err) {
+            console.error('Error marking attendance:', err);
+            throw err;
+        }
+    };
+
     return (
         <AdminContext.Provider value={{
             timetable,
@@ -168,6 +188,8 @@ export const AdminProvider = ({ children }) => {
             deleteNotice,
             updateSeatingPlan,
             deleteSeatingPlan,
+            fetchRoomAttendance,
+            markAttendance,
             loading,
             refreshData: loadAllData
         }}>

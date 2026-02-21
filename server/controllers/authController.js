@@ -209,7 +209,6 @@ exports.bulkSignup = async (req, res) => {
                     sendCredentialsEmail(email, name, rollNumber, password);
                 }
 
-                results.studentsAdded.push({ name, rollNumber, email, password });
                 results.success++;
             } catch (err) {
                 results.failed++;

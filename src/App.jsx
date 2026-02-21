@@ -21,6 +21,9 @@ import StudentTimetable from './pages/Student/StudentTimetable';
 import StudentSeating from './pages/Student/StudentSeating';
 import StudentNoticeBoard from './pages/Student/StudentNoticeBoard';
 import StudentDashboard from './pages/Dashboard/StudentDashboard';
+import ManageAttendance from './pages/Admin/ManageAttendance';
+import StudentAttendance from './pages/Student/StudentAttendance';
+import LandingPage from './pages/Home/LandingPage';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -74,6 +77,14 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/admin/attendance"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ManageAttendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/seating"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
@@ -115,6 +126,14 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/student/attendance"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentAttendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/student/notices"
           element={
             <ProtectedRoute allowedRoles={['student']}>
@@ -132,8 +151,8 @@ const AnimatedRoutes = () => {
           }
         />
 
-        {/* Root Redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Root Route */}
+        <Route path="/" element={<LandingPage />} />
 
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/login" replace />} />

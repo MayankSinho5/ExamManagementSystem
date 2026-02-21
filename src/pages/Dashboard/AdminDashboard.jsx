@@ -82,7 +82,8 @@ const AdminDashboard = () => {
                             { icon: Plus, label: 'Create Exam', path: '/create-exam', color: 'var(--primary-color)' },
                             { icon: Plus, label: 'Manage Students', path: '/admin/students', color: 'var(--primary-color)' },
                             { icon: Clock, label: 'Timetable', path: '/admin/timetable', color: '#f97316' },
-                            { icon: FileText, label: 'Notice Board', path: '/admin/notices', color: '#16a34a' },
+                            { icon: Megaphone, label: 'Notice Board', path: '/admin/notices', color: '#06b6d4' },
+                            { icon: CheckCircle, label: 'Attendance', path: '/admin/attendance', color: '#10b981' },
                             { icon: Grid, label: 'Seating Arrangement', path: '/admin/seating', color: '#8b5cf6' }
                         ].map((item, index) => (
                             <motion.button

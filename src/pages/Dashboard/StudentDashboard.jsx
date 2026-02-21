@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useExam } from '../../context/ExamContext';
 import { useAdmin } from '../../context/AdminContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, GraduationCap, Play, CheckCircle, Clock, Grid, Megaphone, User, Download, X } from 'lucide-react';
+import { LogOut, GraduationCap, Play, CheckCircle, Clock, Grid, Megaphone, User, Download, X, ClipboardCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WelcomeScreen from '../../components/WelcomeScreen';
 import ThemeToggle from '../../components/ThemeToggle';
@@ -166,6 +166,7 @@ const StudentDashboard = () => {
                             { icon: User, label: 'Profile', path: '/profile', color: '#ec4899' },
                             { icon: Megaphone, label: 'Notice Board', path: '/student/notices', color: '#06b6d4' },
                             { icon: Clock, label: 'View Timetable', path: '/student/timetable', color: '#f97316' },
+                            { icon: ClipboardCheck, label: 'Attendance', path: '/student/attendance', color: '#10b981' },
                             { icon: Grid, label: 'Seating Arrangement', path: '/student/seating', color: '#8b5cf6' }
                         ].map((item, index) => (
                             <motion.button
