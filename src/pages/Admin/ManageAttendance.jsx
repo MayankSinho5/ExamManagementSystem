@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, XCircle, Users, Search, Calendar as CalendarIcon, MapPin } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Users, Search, Calendar as CalendarIcon, MapPin, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ManageAttendance = () => {
